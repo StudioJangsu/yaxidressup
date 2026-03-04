@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yaxi Dress Up! ✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink-soft: #ffb7b2;
+            --pink-dark: #b56576;
+            --mint: #b5ead7;
+            --lavender: #c7ceea;
+            --text: #6d597a;
+            --shadow: rgba(109, 89, 122, 0.15);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fff9fb;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column;
+            height: 100vh; width: 100vw;
+            overflow: hidden; user-select: none;
+        }
+
+        .game-screen {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle, #ffffff 0%, #fff0f5 100%);
+        }
+
+        header { padding: 10px; text-align: center; z-index: 10; }
+        .logo {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.8rem;
+            color: var(--pink-dark);
+            text-shadow: 2px 2px 0px white;
+            margin: 0;
+        }
+
+        #bubble {
+            position: absolute;
+            top: 15%; right: 8%;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 3px solid var(--pink-soft);
+            font-weight: bold;
+            color: var(--pink-dark);
+            z-index: 100;
+            display: none;
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+
+        #avatar-container {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        #avatar-box {
+            position: relative;
+            height: 100%;
+            aspect-ratio: 2/3;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 15px 40px var(--shadow);
+            overflow: hidden;
+            border: 6px solid white;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .brinco { animation: jump 0.4s ease; }
+        @keyframes jump {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        .layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 55px; height: 55px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 22px;
+            color: var(--pink-dark);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            z-index: 200;
+            box-shadow: 0 5px 15px var(--shadow);
+            transition: 0.2s;
+        }
+        .arrow:active { transform: translateY(-50%) scale(0.9); }
+        .arrow-l { left: 15px; }
+        .arrow-r { right: 15px; }
+
+        .ui-panel {
+            background: white;
+            border-top-left-radius: 35px;
+            border-top-right-radius: 35px;
+            box-shadow: 0 -10px 25px var(--shadow);
+            padding: 15px 0 25px 0;
+            z-index: 300;
+        }
+
+        .info-bar {
+            text-align: center;
+            font-family: 'Fredoka One', cursive;
+            color: var(--pink-soft);
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .tabs-scroll {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tabs-scroll::-webkit-scrollbar { display: none; }
+
+        .tab {
+            background: #fdf2f4;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 18px;
+            font-family: 'Fredoka One', cursive;
+            color: var(--pink-dark);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: 0.3s;
+            opacity: 0.6;
+        }
+        .tab.active {
+            background: var(--pink-soft);
+            color: white;
+            transform: scale(1.05);
+            opacity: 1;
+        }
+
+        .m-btn {
+            position: absolute; top: 15px; left: 15px;
+            background: white; border: none; border-radius: 50%;
+            width: 40px; height: 40px; box-shadow: 0 4px 10px var(--shadow);
+            font-size: 18px; z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        #capa-fondo { z-index: 1; }
+        #capa-base { z-index: 2; }
+        #capa-zapatos { z-index: 3; }
+        #capa-ropa { z-index: 4; }
+        #capa-pelo { z-index: 5; }
+        #capa-accesorio { z-index: 6; }
+        #capa-mascota { z-index: 7; }
+        #capa-extra { z-index: 8; }
+    </style>
+</head>
+<body onclick="intentarMusica()">
+
+    <button class="m-btn" id="musicBtn" onclick="toggleMusic(event)">🔇</button>
+    
+    <audio id="bg-music" loop preload="auto">
+        <source src="musica.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="snd-pop"><source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" type="audio/mpeg"></audio>
+    <audio id="snd-tab"><source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg"></audio>
+
+    <div class="game-screen">
+        <header><h1 class="logo">Yaxi Dress Up!</h1></header>
+        <div id="bubble">¡Divino! ✨</div>
+
+        <div id="avatar-container">
+            <div class="arrow arrow-l" onclick="cambiarItem(-1)">◀</div>
+            <div class="arrow arrow-r" onclick="cambiarItem(1)">▶</div>
+
+            <div id="avatar-box">
+                <img id="capa-fondo" class="layer" src="">
+                <img id="capa-base" class="layer" src="base.png">
+                <img id="capa-zapatos" class="layer" src="" style="display:none">
+                <img id="capa-ropa" class="layer" src="" style="display:none">
+                <img id="capa-pelo" class="layer" src="" style="display:none">
+                <img id="capa-accesorio" class="layer" src="" style="display:none">
+                <img id="capa-mascota" class="layer" src="" style="display:none">
+                <img id="capa-extra" class="layer" src="" style="display:none">
+            </div>
+        </div>
+
+        <div class="ui-panel">
+            <div class="info-bar" id="info-prenda">¡Toca para Jugar!</div>
+            <div class="tabs-scroll" id="tabs"></div>
+        </div>
+    </div>
+
+    <script>
+        const inventario = {
+            pelo: ["", "cabello1.png", "cabello2.png", "cabello3.png"],
+            ropa: ["", "ropa1.png", "ropa2.png","ropa3.png","ropa4.png"],
+            zapatos: ["", "zapato1.png","zapato2.png","zapato3.png","zapato4.png"],
+            accesorio: ["", "accesorio1.png","accesorio2.png","accesorio3.png"],
+            mascota: ["", "mascota1.png", "mascota2.png", "mascota3.png", "mascota4.png", "mascota5.png", "mascota6.png", "mascota7.png", "mascota8.png", "mascota9.png"],
+            extra: ["", "extra1.png","extra2.png","extra3.png","extra4.png","extra5.png"],
+            fondo: ["", "fondo1.png","fondo2.png","fondo3.png","fondo4.png"]
+        };
+
+        const nombres = {
+            pelo: ["🚫 Calva", "Pelo 1", "Pelo 2", "Pelo 3"],
+            ropa: ["🚫 Sin ropa", "Conjunto 1", "Conjunto 2","Conjunto 3","Conjunto 4"],
+            zapatos: ["🚫 Descalza", "Zapatos 1","Zapatos 2","Zapatos 3","Zapatos 4"],
+            accesorio: ["🚫 Nada", "Flor","Moño rosa","Moño azul"],
+            mascota: ["🚫 Sin mascota", "Mascota 1", "Mascota 2", "Mascota 3", "Mascota 4", "Mascota 5", "Mascota 6", "Mascota 7", "Mascota 8", "Mascota 9"],
+            extra: ["🚫 Sin extras", "Cafe", "Libro" , "Galleta","Corazón","Arcoiris"],
+            fondo: ["🚫 Sin fondo", "Sala","Ciudad","Escuela","Calle"],
+        };
+
+        const frases = ["¡Me encanta!", "¡Súper chic!", "¡Wow!", "✨ Qué linda ✨", "¡Perfecto!", "¡Increíble!"];
+        let categoriaActual = 'pelo';
+        let indices = { pelo: 0, ropa: 0, zapatos: 0, accesorio: 0, mascota: 0, extra: 0, fondo: 0 };
+        
+        // --- MOTOR DE AUDIO ---
+        const music = document.getElementById('bg-music');
+        const mBtn = document.getElementById('musicBtn');
+        let musicCargada = false;
+
+        function intentarMusica() {
+            if (!musicCargada) {
+                music.play().then(() => {
+                    musicCargada = true;
+                    mBtn.innerText = "🎵";
+                }).catch(e => console.log("Audio esperando interacción real..."));
+            }
+        }
+
+        function toggleMusic(e) {
+            e.stopPropagation(); // Evita que el clic del botón active el body
+            if (music.paused) {
+                music.play();
+                mBtn.innerText = "🎵";
+            } else {
+                music.pause();
+                mBtn.innerText = "🔇";
+            }
+        }
+
+        function playSound(id) {
+            const snd = document.getElementById(id);
+            snd.currentTime = 0;
+            snd.play().catch(e => {});
+        }
+
+        // --- MOTOR DEL JUEGO ---
+        function crearTabs() {
+            const contenedor = document.getElementById('tabs');
+            Object.keys(inventario).forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `tab ${cat === categoriaActual ? 'active' : ''}`;
+                btn.innerText = cat.toUpperCase();
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    playSound('snd-tab');
+                    seleccionarCategoria(cat, btn);
+                };
+                contenedor.appendChild(btn);
+            });
+        }
+
+        function seleccionarCategoria(cat, btn) {
+            categoriaActual = cat;
+            document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            btn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            actualizarInfo();
+        }
+
+        function cambiarItem(direccion) {
+            playSound('snd-pop');
+            const box = document.getElementById('avatar-box');
+            box.classList.remove('brinco');
+            void box.offsetWidth;
+            box.classList.add('brinco');
+
+            const lista = inventario[categoriaActual];
+            indices[categoriaActual] += direccion;
+
+            if (indices[categoriaActual] < 0) indices[categoriaActual] = lista.length - 1;
+            if (indices[categoriaActual] >= lista.length) indices[categoriaActual] = 0;
+
+            const imagenCapa = document.getElementById(`capa-${categoriaActual}`);
+            const ruta = lista[indices[categoriaActual]];
+
+            imagenCapa.style.display = (ruta === "") ? 'none' : 'block';
+            imagenCapa.src = ruta;
+
+            actualizarInfo();
+            mostrarFrase();
+        }
+
+        function mostrarFrase() {
+            const bubble = document.getElementById('bubble');
+            bubble.innerText = frases[Math.floor(Math.random() * frases.length)];
+            bubble.style.display = 'block';
+            setTimeout(() => { bubble.style.display = 'none'; }, 1500);
+        }
+
+        function actualizarInfo() {
+            const nombrePrenda = nombres[categoriaActual][indices[categoriaActual]];
+            document.getElementById('info-prenda').innerText = `${categoriaActual}: ${nombrePrenda}`;
+        }
+
+        crearTabs();
+        actualizarInfo();
+    </script>
+</body>
+</html>
